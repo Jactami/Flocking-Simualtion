@@ -1,0 +1,12 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+input,
+p {
+    margin: 0;
+    opacity: 0.5;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
