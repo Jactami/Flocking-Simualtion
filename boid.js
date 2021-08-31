@@ -169,8 +169,7 @@ class Boid {
         let dir = p5.Vector.normalize(this.vel);
         let dynLen = this.vel.mag() / this.maxVel;
         let ahead = p5.Vector.add(this.pos, dir.mult(this.radiusO * dynLen));
-        let prediction = p5.Vector.add(this.pos, dir.mult(0.5)); // p5.Vector.add(this.pos, this.vel)?
-        prediction = p5.Vector.add(this.pos, this.vel);
+        let prediction = p5.Vector.add(this.pos, this.vel);
 
         // find closest and most threatening obstacle
         let closest;
@@ -189,8 +188,9 @@ class Boid {
             return createVector(0, 0);
 
         // calculate steering force
-        let force = p5.Vector.sub(ahead, closest.pos);
-        force.setMag(this.maxForce);
+        let desired = p5.Vector.sub(ahead, closest.pos);
+        let force = p5.Vector.sub(desired, this.vel);
+        force.limit(this.maxForce);
 
         return force;
     }

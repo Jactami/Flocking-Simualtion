@@ -76,8 +76,8 @@ function draw() {
     }
 
     for (let boid of flock) {
-        boid.steer(flock, obstacles);
-        // boid.steerWithQuadTree(tree, obstacles);
+        // boid.steer(flock, obstacles);
+        boid.steerWithQuadTree(tree, obstacles);
     }
 
     for (let obstacle of obstacles) {
