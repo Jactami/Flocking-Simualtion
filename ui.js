@@ -9,12 +9,13 @@ let sliderPop,
     sliderMultA,
     sliderMultS,
     sliderMaxVel,
+    sliderFov,
     sliderRadiusC,
     sliderRadiusA,
     sliderRadiusS,
     checkboxTree;
 
-function buildUI(_x, _y, capacity, population, maxVel, multC, multA, multS, radiusC, radiusA, radiusS) {
+function buildUI(_x, _y, capacity, population, maxVel, fov, multC, multA, multS, radiusC, radiusA, radiusS) {
     x = _x;
     y = _y;
     inputChanged = false;
@@ -28,6 +29,7 @@ function buildUI(_x, _y, capacity, population, maxVel, multC, multA, multS, radi
         sliderCap = buildSlider("Capacity", x, getNextY(FONT_SIZE * 3), 1, 50, capacity, 1),
         sliderPop = buildSlider("Population", x, getNextY(FONT_SIZE * 4), 1, 200, population, 1),
         sliderMaxVel = buildSlider("Velocity", x, getNextY(FONT_SIZE * 4), 0.1, 10, maxVel, 0.1),
+        sliderFov = buildSlider("Field of View", x, getNextY(FONT_SIZE * 4), 0, 360, fov, 1),
         sliderMultC = buildSlider("Cohesion", x, getNextY(FONT_SIZE * 4), 0, 5, multC, 0.1),
         sliderMultA = buildSlider("Alignment", x, getNextY(FONT_SIZE * 4), 0, 5, multA, 0.1),
         sliderMultS = buildSlider("Separation", x, getNextY(FONT_SIZE * 4), 0, 5, multS, 0.1),

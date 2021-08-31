@@ -7,13 +7,25 @@ function setup() {
     camera(0, 0, width * 1.2);
 
     for (let i = 0; i < TOTAL; i++) {
-        flock.push(Boid.getBoid3D());
+        flock.push(Boid.getBoid3D(random(width), random(height), random(width)));
     }
     tree = Quadtree.getQuadTree3D(0, 0, 0, width, height, width, 25);
 
     let boid = Boid.getBoid3D();
-    buildUI(width - 150, 20, tree.capacity, flock.length, boid.maxVel, boid.multC,
-        boid.multA, boid.multS, boid.radiusC, boid.radiusA, boid.radiusS);
+    buildUI(
+        width - 150,
+        20,
+        tree.capacity,
+        flock.length,
+        boid.maxVel,
+        degrees(boid.fov),
+        boid.multC,
+        boid.multA,
+        boid.multS,
+        boid.radiusC,
+        boid.radiusA,
+        boid.radiusS
+    );
 }
 
 function draw() {
@@ -30,7 +42,16 @@ function draw() {
         flock = flock.slice(0, sliderPop.value());
 
         for (let boid of flock) {
-            boid.updateSettings(sliderMaxVel.value(), sliderMultC.value(), sliderMultA.value(), sliderMultS.value(), sliderRadiusC.value(), sliderRadiusA.value(), sliderRadiusS.value());
+            boid.updateSettings(
+                sliderMaxVel.value(),
+                radians(sliderFov.value()),
+                sliderMultC.value(),
+                sliderMultA.value(),
+                sliderMultS.value(),
+                sliderRadiusC.value(),
+                sliderRadiusA.value(),
+                sliderRadiusS.value()
+            );
         }
 
         inputChanged = false;

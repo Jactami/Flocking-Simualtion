@@ -1,31 +1,31 @@
 class Boid {
 
-    constructor() {
-        this.pos = createVector(random(width), random(height), random(width));
+    constructor(x, y, z) {
+        this.pos = createVector(x, y, z);
         this.vel = p5.Vector.random3D();
         this.acc = createVector();
         this.maxForce = 0.2;
         this.r = 5;
         this.c = color(255, 100);
 
-        this.updateSettings(5, 1, 1, 1.5, 150, 150, 50);
+        this.updateSettings(5, 1.5 * PI, 1, 1, 1.5, 150, 150, 50);
 
         this.vel.setMag(this.maxVel);
     }
 
-    static getBoid2D() {
-        let boid = new Boid();
-        boid.pos.z = 0;
+    static getBoid2D(x, y) {
+        let boid = new Boid(x, y, 0);
         boid.vel.z = 0;
         return boid;
     }
 
-    static getBoid3D() {
-        return new Boid();
+    static getBoid3D(x, y, z) {
+        return new Boid(x, y, z);
     }
 
-    updateSettings(maxVel, multC, multA, multS, radiusC, radiusA, radiusS) {
+    updateSettings(maxVel, fov, multC, multA, multS, radiusC, radiusA, radiusS) {
         this.maxVel = maxVel;
+        this.fov = fov;
         this.multC = multC;
         this.multA = multA;
         this.multS = multS;
@@ -55,14 +55,30 @@ class Boid {
     getNeighbors(flock, radius) {
         let neighbors = [];
         for (let boid of flock) {
+            // self check
+            if (boid === this)
+                continue;
+
+            // check if boid is in range
             let d = dist(this.pos.x, this.pos.y, this.pos.z, boid.pos.x, boid.pos.y, boid.pos.z);
             if (d > radius)
+                continue;
+
+            // check if boid is inside field of view
+            if (!this.isInFov(boid))
                 continue;
 
             neighbors.push(boid);
         }
 
         return neighbors;
+    }
+
+    isInFov(boid) {
+        let v = p5.Vector.sub(this.pos, boid.pos);
+        let angle = v.angleBetween(this.vel);
+
+        return PI - abs(angle) <= this.fov * 0.5;
     }
 
     steer(flock) {
@@ -73,7 +89,10 @@ class Boid {
     }
 
     getNeighborsWithQuadTree(quadTree, radius) {
-        return quadTree.getObjectsInRadius(this.pos.x, this.pos.y, this.pos.z, radius).map(b => b.data);
+        let neighbors = quadTree.getObjectsInRadius(this.pos.x, this.pos.y, this.pos.z, radius).map(b => b.data);
+        neighbors = neighbors.filter(neighbor => neighbor !== this && this.isInFov(neighbor));
+
+        return neighbors;
     }
 
     steerWithQuadTree(quadTree) {
@@ -84,7 +103,7 @@ class Boid {
     }
 
     cohesion(neighbors) {
-        if (neighbors.length <= 1)
+        if (neighbors.length === 0)
             return createVector();
 
         let target = neighbors.reduce((sum, current) => {
@@ -93,7 +112,7 @@ class Boid {
             }
             return sum;
         }, createVector());
-        target.div(neighbors.length - 1);
+        target.div(neighbors.length);
 
         let force = p5.Vector.sub(target, this.pos);
         force.setMag(this.maxVel);
@@ -104,7 +123,7 @@ class Boid {
     }
 
     separation(neighbors) {
-        if (neighbors.length <= 1)
+        if (neighbors.length === 0)
             return createVector();
 
         let repulsion = neighbors.reduce((sum, current) => {
@@ -114,7 +133,7 @@ class Boid {
             }
             return sum;
         }, createVector());
-        repulsion.div(neighbors.length - 1);
+        repulsion.div(neighbors.length);
         repulsion.setMag(this.maxVel);
 
         let force = p5.Vector.sub(repulsion, this.vel);
@@ -124,7 +143,7 @@ class Boid {
     }
 
     alignment(neighbors) {
-        if (neighbors.length <= 1)
+        if (neighbors.length === 0)
             return createVector();
 
         let dir = neighbors.reduce((sum, current) => {
@@ -133,7 +152,7 @@ class Boid {
             }
             return sum;
         }, createVector());
-        dir.div(neighbors.length - 1);
+        dir.div(neighbors.length);
         dir.setMag(this.maxVel);
 
         let force = p5.Vector.sub(dir, this.vel);

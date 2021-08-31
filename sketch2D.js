@@ -4,14 +4,26 @@ const TOTAL = 50;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
+    let fov = 1.5 * PI;
     for (let i = 0; i < TOTAL; i++) {
-        flock.push(Boid.getBoid2D());
+        flock.push(Boid.getBoid2D(random(width), random(height)));
     }
     tree = Quadtree.getQuadTree2D(0, 0, width, height, 25);
 
     let boid = Boid.getBoid2D();
-    buildUI(width - 150, 20, tree.capacity, flock.length, boid.maxVel, boid.multC,
-        boid.multA, boid.multS, boid.radiusC, boid.radiusA, boid.radiusS);
+    buildUI(
+        width - 150, 20,
+        tree.capacity,
+        flock.length,
+        boid.maxVel,
+        degrees(fov),
+        boid.multC,
+        boid.multA,
+        boid.multS,
+        boid.radiusC,
+        boid.radiusA,
+        boid.radiusS
+    );
 }
 
 function draw() {
@@ -21,12 +33,21 @@ function draw() {
 
         let len = flock.length
         for (let i = 0; i < sliderPop.value() - len; i++) {
-            flock.push(Boid.getBoid2D());
+            flock.push(Boid.getBoid2D(random(width), random(height)));
         }
         flock = flock.slice(0, sliderPop.value());
 
         for (let boid of flock) {
-            boid.updateSettings(sliderMaxVel.value(), sliderMultC.value(), sliderMultA.value(), sliderMultS.value(), sliderRadiusC.value(), sliderRadiusA.value(), sliderRadiusS.value());
+            boid.updateSettings(
+                sliderMaxVel.value(),
+                radians(sliderFov.value()),
+                sliderMultC.value(),
+                sliderMultA.value(),
+                sliderMultS.value(),
+                sliderRadiusC.value(),
+                sliderRadiusA.value(),
+                sliderRadiusS.value()
+            );
         }
 
         inputChanged = false;
@@ -45,6 +66,7 @@ function draw() {
     }
 
     for (let boid of flock) {
+        // boid.steer(flock);
         boid.steerWithQuadTree(tree);
     }
     for (let boid of flock) {
