@@ -8,7 +8,7 @@ class Boid {
         this.r = 5;
         this.c = color(255, 100);
 
-        this.updateSettings(5, 1.5 * PI, 1, 1, 1.5, 150, 150, 50);
+        this.updateSettings(5, 1.5 * PI, 1, 1, 1.5, 2, 150, 150, 50, 100);
 
         this.vel.setMag(this.maxVel);
     }
@@ -23,15 +23,17 @@ class Boid {
         return new Boid(x, y, z);
     }
 
-    updateSettings(maxVel, fov, multC, multA, multS, radiusC, radiusA, radiusS) {
+    updateSettings(maxVel, fov, multC, multA, multS, multO, radiusC, radiusA, radiusS, radiusO) {
         this.maxVel = maxVel;
         this.fov = fov;
         this.multC = multC;
         this.multA = multA;
         this.multS = multS;
+        this.multO = multO;
         this.radiusC = radiusC;
         this.radiusA = radiusA;
         this.radiusS = radiusS;
+        this.radiusO = radiusO;
     }
 
     edges() {
@@ -85,7 +87,8 @@ class Boid {
         this.acc = createVector();
         this.acc.add(this.cohesion(this.getNeighbors(flock, this.radiusC)).mult(this.multC))
             .add(this.alignment(this.getNeighbors(flock, this.radiusA)).mult(this.multA))
-            .add(this.separation(this.getNeighbors(flock, this.radiusS)).mult(this.multS));
+            .add(this.separation(this.getNeighbors(flock, this.radiusS)).mult(this.multS))
+            .add(this.avoid(obstacles).mult(this.multO));
     }
 
     getNeighborsWithQuadTree(quadTree, radius) {
@@ -95,11 +98,12 @@ class Boid {
         return neighbors;
     }
 
-    steerWithQuadTree(quadTree) {
+    steerWithQuadTree(quadTree, obstacles) {
         this.acc = createVector();
         this.acc.add(this.cohesion(this.getNeighborsWithQuadTree(quadTree, this.radiusC)).mult(this.multC))
             .add(this.alignment(this.getNeighborsWithQuadTree(quadTree, this.radiusA)).mult(this.multA))
-            .add(this.separation(this.getNeighborsWithQuadTree(quadTree, this.radiusS)).mult(this.multS));
+            .add(this.separation(this.getNeighborsWithQuadTree(quadTree, this.radiusS)).mult(this.multS))
+            .add(this.avoid(obstacles).mult(this.multO));
     }
 
     cohesion(neighbors) {
@@ -157,6 +161,36 @@ class Boid {
 
         let force = p5.Vector.sub(dir, this.vel);
         force.limit(this.maxForce);
+
+        return force;
+    }
+
+    avoid(obstacles) {
+        let dir = p5.Vector.normalize(this.vel);
+        let dynLen = this.vel.mag() / this.maxVel;
+        let ahead = p5.Vector.add(this.pos, dir.mult(this.radiusO * dynLen));
+        let prediction = p5.Vector.add(this.pos, dir.mult(0.5)); // p5.Vector.add(this.pos, this.vel)?
+        prediction = p5.Vector.add(this.pos, this.vel);
+
+        // find closest and most threatening obstacle
+        let closest;
+        let dMin = Infinity;
+        for (let obstacle of obstacles) {
+            if (obstacle.isWithin(ahead) || obstacle.isWithin(prediction) || obstacle.isWithin(this.pos)) {
+                let d = obstacle.distanceTo(this.pos);
+                if (d < dMin) {
+                    dMin = d;
+                    closest = obstacle;
+                }
+            }
+        }
+
+        if (!closest)
+            return createVector(0, 0);
+
+        // calculate steering force
+        let force = p5.Vector.sub(ahead, closest.pos);
+        force.setMag(this.maxForce);
 
         return force;
     }

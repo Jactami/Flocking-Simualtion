@@ -1,14 +1,20 @@
 let flock = [];
 let tree;
-const TOTAL = 50;
+let obstacles = [];
+const TOTAL_BOIDS = 50;
+const TOTAL_OBSTACLES = 3;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    let fov = 1.5 * PI;
-    for (let i = 0; i < TOTAL; i++) {
+    for (let i = 0; i < TOTAL_BOIDS; i++) {
         flock.push(Boid.getBoid2D(random(width), random(height)));
     }
     tree = Quadtree.getQuadTree2D(0, 0, width, height, 25);
+
+    for (let i = 0; i < TOTAL_OBSTACLES; i++) {
+        let r = random(height * 0.05, height * 0.2);
+        obstacles.push(Obstacle.getObstacle2D(random(r, width - r), random(r, height - r), r));
+    }
 
     let boid = Boid.getBoid2D();
     buildUI(
@@ -16,13 +22,15 @@ function setup() {
         tree.capacity,
         flock.length,
         boid.maxVel,
-        degrees(fov),
+        degrees(boid.fov),
         boid.multC,
         boid.multA,
         boid.multS,
+        boid.multO,
         boid.radiusC,
         boid.radiusA,
-        boid.radiusS
+        boid.radiusS,
+        boid.radiusO
     );
 }
 
@@ -44,9 +52,11 @@ function draw() {
                 sliderMultC.value(),
                 sliderMultA.value(),
                 sliderMultS.value(),
+                sliderMultO.value(),
                 sliderRadiusC.value(),
                 sliderRadiusA.value(),
-                sliderRadiusS.value()
+                sliderRadiusS.value(),
+                sliderRadiusO.value()
             );
         }
 
@@ -66,9 +76,14 @@ function draw() {
     }
 
     for (let boid of flock) {
-        // boid.steer(flock);
-        boid.steerWithQuadTree(tree);
+        boid.steer(flock, obstacles);
+        // boid.steerWithQuadTree(tree, obstacles);
     }
+
+    for (let obstacle of obstacles) {
+        obstacle.show2D();
+    }
+
     for (let boid of flock) {
         boid.edges();
         boid.update();

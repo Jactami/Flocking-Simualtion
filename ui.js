@@ -8,14 +8,16 @@ let sliderPop,
     sliderMultC,
     sliderMultA,
     sliderMultS,
+    sliderMultO,
     sliderMaxVel,
     sliderFov,
     sliderRadiusC,
     sliderRadiusA,
     sliderRadiusS,
+    sliderRadiusO,
     checkboxTree;
 
-function buildUI(_x, _y, capacity, population, maxVel, fov, multC, multA, multS, radiusC, radiusA, radiusS) {
+function buildUI(_x, _y, capacity, population, maxVel, fov, multC, multA, multS, multO, radiusC, radiusA, radiusS, radiusO) {
     x = _x;
     y = _y;
     inputChanged = false;
@@ -35,7 +37,9 @@ function buildUI(_x, _y, capacity, population, maxVel, fov, multC, multA, multS,
         sliderMultS = buildSlider("Separation", x, getNextY(FONT_SIZE * 4), 0, 5, multS, 0.1),
         sliderRadiusC = buildSlider("Cohesion Radius", x, getNextY(FONT_SIZE * 4), 10, max(windowWidth, windowHeight), radiusC, 1),
         sliderRadiusA = buildSlider("Alignment Radius", x, getNextY(FONT_SIZE * 4), 10, max(windowWidth, windowHeight), radiusA, 1),
-        sliderRadiusS = buildSlider("Separation Radius", x, getNextY(FONT_SIZE * 4), 10, max(windowWidth, windowHeight), radiusS, 1)
+        sliderRadiusS = buildSlider("Separation Radius", x, getNextY(FONT_SIZE * 4), 10, max(windowWidth, windowHeight), radiusS, 1),
+        sliderMultO = buildSlider("Obstacle Avoidance", x, getNextY(FONT_SIZE * 4), 0, 5, multO, 0.1),
+        sliderRadiusO = buildSlider("Obstacle Radius", x, getNextY(FONT_SIZE * 4), 0, max(windowWidth, windowHeight) * 0.3, radiusO, 1)
     ];
 
     y = _y; // reset y
