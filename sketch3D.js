@@ -81,7 +81,9 @@ function draw() {
     }
 
     for (let boid of flock) {
-        boid.steerWithQuadTree(tree, obstacles);
+        // boid.flock(flock);
+        boid.flockWithQuadTree(tree);
+        boid.avoid(obstacles);
     }
 
     for (let obstacle of obstacles) {

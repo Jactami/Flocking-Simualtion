@@ -54,6 +54,20 @@ class Boid {
         }
     }
 
+    flockWithQuadTree(tree) {
+        // flocking: cohesion + alignment + separation
+        this.applyForce(this.cohesion(this.getNeighborsWithQuadTree(tree, this.radiusC)));
+        this.applyForce(this.alignment(this.getNeighborsWithQuadTree(tree, this.radiusA)));
+        this.applyForce(this.separation(this.getNeighborsWithQuadTree(tree, this.radiusS)));
+    }
+
+    flock(boids) {
+        // flocking: cohesion + alignment + separation
+        this.applyForce(this.cohesion(this.getNeighbors(boids, this.radiusC)));
+        this.applyForce(this.alignment(this.getNeighbors(boids, this.radiusA)));
+        this.applyForce(this.separation(this.getNeighbors(boids, this.radiusS)));
+    }
+
     getNeighbors(flock, radius) {
         let neighbors = [];
         for (let boid of flock) {
@@ -76,21 +90,6 @@ class Boid {
         return neighbors;
     }
 
-    isInFov(boid) {
-        let v = p5.Vector.sub(this.pos, boid.pos);
-        let angle = v.angleBetween(this.vel);
-
-        return PI - abs(angle) <= this.fov * 0.5;
-    }
-
-    steer(flock) {
-        this.acc = createVector();
-        this.acc.add(this.cohesion(this.getNeighbors(flock, this.radiusC)).mult(this.multC))
-            .add(this.alignment(this.getNeighbors(flock, this.radiusA)).mult(this.multA))
-            .add(this.separation(this.getNeighbors(flock, this.radiusS)).mult(this.multS))
-            .add(this.avoid(obstacles).mult(this.multO));
-    }
-
     getNeighborsWithQuadTree(quadTree, radius) {
         let neighbors = quadTree.getObjectsInRadius(this.pos.x, this.pos.y, this.pos.z, radius).map(b => b.data);
         neighbors = neighbors.filter(neighbor => neighbor !== this && this.isInFov(neighbor));
@@ -98,12 +97,11 @@ class Boid {
         return neighbors;
     }
 
-    steerWithQuadTree(quadTree, obstacles) {
-        this.acc = createVector();
-        this.acc.add(this.cohesion(this.getNeighborsWithQuadTree(quadTree, this.radiusC)).mult(this.multC))
-            .add(this.alignment(this.getNeighborsWithQuadTree(quadTree, this.radiusA)).mult(this.multA))
-            .add(this.separation(this.getNeighborsWithQuadTree(quadTree, this.radiusS)).mult(this.multS))
-            .add(this.avoid(obstacles).mult(this.multO));
+    isInFov(boid) {
+        let v = p5.Vector.sub(this.pos, boid.pos);
+        let angle = v.angleBetween(this.vel);
+
+        return PI - abs(angle) <= this.fov * 0.5;
     }
 
     cohesion(neighbors) {
@@ -117,11 +115,8 @@ class Boid {
             return sum;
         }, createVector());
         target.div(neighbors.length);
-
-        let force = p5.Vector.sub(target, this.pos);
-        force.setMag(this.maxVel);
-        force.sub(this.vel);
-        force.limit(this.maxForce);
+        let desired = p5.Vector.sub(target, this.pos);
+        let force = this.steer(desired, this.multC);
 
         return force;
     }
@@ -137,11 +132,8 @@ class Boid {
             }
             return sum;
         }, createVector());
-        repulsion.div(neighbors.length);
-        repulsion.setMag(this.maxVel);
-
-        let force = p5.Vector.sub(repulsion, this.vel);
-        force.limit(this.maxForce);
+        let desired = repulsion.div(neighbors.length);
+        let force = this.steer(desired, this.multS);
 
         return force;
     }
@@ -156,16 +148,17 @@ class Boid {
             }
             return sum;
         }, createVector());
-        dir.div(neighbors.length);
-        dir.setMag(this.maxVel);
-
-        let force = p5.Vector.sub(dir, this.vel);
-        force.limit(this.maxForce);
+        let desired = dir.div(neighbors.length);
+        let force = this.steer(desired, this.multA);
 
         return force;
     }
 
     avoid(obstacles) {
+        this.applyForce(this.avoidance(obstacles));
+    }
+
+    avoidance(obstacles) {
         let dir = p5.Vector.normalize(this.vel);
         let dynLen = this.vel.mag() / this.maxVel;
         let ahead = p5.Vector.add(this.pos, dir.mult(this.radiusO * dynLen));
@@ -189,8 +182,16 @@ class Boid {
 
         // calculate steering force
         let desired = p5.Vector.sub(ahead, closest.pos);
-        let force = p5.Vector.sub(desired, this.vel);
+        let force = this.steer(desired, this.multO);
+
+        return force;
+    }
+
+    steer(desired, multiplier) {
+        desired.setMag(this.maxVel);
+        let force = desired.sub(this.vel);
         force.limit(this.maxForce);
+        force.mult(multiplier);
 
         return force;
     }
@@ -217,10 +218,15 @@ class Boid {
         pop();
     }
 
+    applyForce(force) {
+        this.acc.add(force);
+    }
+
     update() {
         this.vel.add(this.acc);
         this.vel.limit(this.maxVel);
         this.pos.add(this.vel);
+        this.acc.set(0, 0, 0);
     }
 }
 
