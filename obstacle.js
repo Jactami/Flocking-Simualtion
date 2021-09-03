@@ -13,7 +13,7 @@ class Obstacle {
         return new Obstacle(x, y, z, r);
     }
 
-    isWithin(pt) {
+    isInside(pt) {
         return this.distanceTo(pt) < 0;
     }
 
@@ -23,7 +23,7 @@ class Obstacle {
 
     show2D() {
         noStroke();
-        fill(150);
+        fill(150, 100);
         circle(this.pos.x, this.pos.y, 2 * this.r);
     }
 
@@ -31,7 +31,7 @@ class Obstacle {
         push();
         translate(this.pos.x - width * 0.5, this.pos.y - height * 0.5, this.pos.z - width * 0.5);
         strokeWeight(0);
-        fill(150, 50);
+        fill(150, 100);
         sphere(this.r);
         pop();
     }

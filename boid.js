@@ -159,28 +159,27 @@ class Boid {
     }
 
     avoidance(obstacles) {
-        let dir = p5.Vector.normalize(this.vel);
-        let dynLen = this.vel.mag() / this.maxVel;
-        let ahead = p5.Vector.add(this.pos, dir.mult(this.radiusO * dynLen));
-        let prediction = p5.Vector.add(this.pos, this.vel);
+        // https://gamedevelopment.tutsplus.com/tutorials/understanding-steering-behaviors-collision-avoidance--gamedev-7777
+        let u = p5.Vector.normalize(this.vel);
+        let len = this.vel.mag() / this.maxVel;
+        let ahead = p5.Vector.add(this.pos, u.mult(this.radiusO * len));
+        let buffer = this.r * 3;
 
         // find closest and most threatening obstacle
         let closest;
         let dMin = Infinity;
         for (let obstacle of obstacles) {
-            if (obstacle.isWithin(ahead) || obstacle.isWithin(prediction) || obstacle.isWithin(this.pos)) {
-                let d = obstacle.distanceTo(this.pos);
-                if (d < dMin) {
-                    dMin = d;
-                    closest = obstacle;
-                }
+            let d = obstacle.distanceTo(this.pos);
+            if ((obstacle.isInside(ahead) || d < buffer) && d < dMin) {
+                dMin = d;
+                closest = obstacle;
             }
         }
 
         if (!closest)
-            return createVector(0, 0);
+            return createVector(0, 0, 0);
 
-        // calculate steering force
+        // steer away
         let desired = p5.Vector.sub(ahead, closest.pos);
         let force = this.steer(desired, this.multO);
 
@@ -194,6 +193,17 @@ class Boid {
         force.mult(multiplier);
 
         return force;
+    }
+
+    applyForce(force) {
+        this.acc.add(force);
+    }
+
+    update() {
+        this.vel.add(this.acc);
+        this.vel.limit(this.maxVel);
+        this.pos.add(this.vel);
+        this.acc.set(0, 0, 0);
     }
 
     show2D() {
@@ -216,17 +226,6 @@ class Boid {
         translate(this.vel.setMag(this.r));
         sphere(this.r * 0.5);
         pop();
-    }
-
-    applyForce(force) {
-        this.acc.add(force);
-    }
-
-    update() {
-        this.vel.add(this.acc);
-        this.vel.limit(this.maxVel);
-        this.pos.add(this.vel);
-        this.acc.set(0, 0, 0);
     }
 }
 

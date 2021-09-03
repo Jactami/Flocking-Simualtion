@@ -1,22 +1,16 @@
 let flock = [];
 let tree;
 let obstacles = [];
-const TOTAL_BOIDS = 50;
-const TOTAL_OBSTACLES = 3;
+const TOTAL = 50;
 
 function setup() {
     createCanvas(windowWidth, windowHeight, WEBGL);
     camera(0, 0, width * 1.2);
 
-    for (let i = 0; i < TOTAL_BOIDS; i++) {
+    for (let i = 0; i < TOTAL; i++) {
         flock.push(Boid.getBoid3D(random(width), random(height), random(width)));
     }
     tree = Quadtree.getQuadTree3D(0, 0, 0, width, height, width, 25);
-
-    for (let i = 0; i < TOTAL_OBSTACLES; i++) {
-        let r = random(height * 0.05, height * 0.2);
-        obstacles.push(Obstacle.getObstacle3D(random(r, width - r), random(r, height - r), random(width), r));
-    }
 
     let boid = Boid.getBoid3D();
     buildUI(
@@ -24,6 +18,7 @@ function setup() {
         20,
         tree.capacity,
         flock.length,
+        obstacles.length,
         boid.maxVel,
         degrees(boid.fov),
         boid.multC,
@@ -44,11 +39,18 @@ function draw() {
     if (inputChanged) {
         tree.capacity = sliderCap.value();
 
-        let len = flock.length
+        let len = flock.length;
         for (let i = 0; i < sliderPop.value() - len; i++) {
             flock.push(Boid.getBoid2D());
         }
         flock = flock.slice(0, sliderPop.value());
+
+        len = obstacles.length;
+        for (let i = 0; i < sliderObstacle.value() - len; i++) {
+            let r = random(height * 0.05, height * 0.2);
+            obstacles.push(Obstacle.getObstacle3D(random(r, width - r), random(r, height - r), random(r, width - r), r));
+        }
+        obstacles = obstacles.slice(0, sliderObstacle.value());
 
         for (let boid of flock) {
             boid.updateSettings(

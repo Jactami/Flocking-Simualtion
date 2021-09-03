@@ -4,6 +4,7 @@ let framesP;
 let frames = [];
 let inputChanged;
 let sliderPop,
+    sliderObstacle,
     sliderCap,
     sliderMultC,
     sliderMultA,
@@ -17,7 +18,7 @@ let sliderPop,
     sliderRadiusO,
     checkboxTree;
 
-function buildUI(_x, _y, capacity, population, maxVel, fov, multC, multA, multS, multO, radiusC, radiusA, radiusS, radiusO) {
+function buildUI(_x, _y, capacity, population, obstacleSize, maxVel, fov, multC, multA, multS, multO, radiusC, radiusA, radiusS, radiusO) {
     x = _x;
     y = _y;
     inputChanged = false;
@@ -29,7 +30,8 @@ function buildUI(_x, _y, capacity, population, maxVel, fov, multC, multA, multS,
     checkboxTree = buildCheckbox("show Quadtree", x, getNextY(FONT_SIZE * 3));
     sliders = [
         sliderCap = buildSlider("Capacity", x, getNextY(FONT_SIZE * 3), 1, 50, capacity, 1),
-        sliderPop = buildSlider("Population", x, getNextY(FONT_SIZE * 4), 1, 200, population, 1),
+        sliderPop = buildSlider("Boid Population", x, getNextY(FONT_SIZE * 4), 1, 200, population, 1),
+        sliderObstacle = buildSlider("Obstacles", x, getNextY(FONT_SIZE * 4), 0, 10, obstacleSize, 1),
         sliderMaxVel = buildSlider("Velocity", x, getNextY(FONT_SIZE * 4), 0.1, 10, maxVel, 0.1),
         sliderFov = buildSlider("Field of View", x, getNextY(FONT_SIZE * 4), 0, 360, fov, 1),
         sliderMultC = buildSlider("Cohesion", x, getNextY(FONT_SIZE * 4), 0, 5, multC, 0.1),
